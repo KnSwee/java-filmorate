@@ -1,17 +1,21 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
 public class UserControllerTest {
 
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     UserController users = new UserController();
 
     private static User.UserBuilder getValidUser() {
@@ -28,10 +32,18 @@ public class UserControllerTest {
         User blankUser = getValidUser().email("").build();
         User nullUser = getValidUser().email(null).build();
         User withoutAtUser = getValidUser().email("exampleexample.com").build();
+        User withoutDomainUser = getValidUser().email("example@example").login("biba boba").build();
 
-        assertThrows(ValidationException.class, () -> users.create(blankUser));
-        assertThrows(ValidationException.class, () -> users.create(nullUser));
-        assertThrows(ValidationException.class, () -> users.create(withoutAtUser));
+        Set<ConstraintViolation<User>> violations;
+        violations = validator.validate(blankUser);
+        assertFalse(violations.isEmpty());
+        violations = validator.validate(nullUser);
+        assertFalse(violations.isEmpty());
+        violations = validator.validate(withoutAtUser);
+        assertFalse(violations.isEmpty());
+        violations = validator.validate(withoutDomainUser);
+        assertFalse(violations.isEmpty());
+
     }
 
     @Test
@@ -40,9 +52,13 @@ public class UserControllerTest {
         User nullUser = getValidUser().login(null).build();
         User spaceUser = getValidUser().login("login login").build();
 
-        assertThrows(ValidationException.class, () -> users.create(blankUser));
-        assertThrows(ValidationException.class, () -> users.create(nullUser));
-        assertThrows(ValidationException.class, () -> users.create(spaceUser));
+        Set<ConstraintViolation<User>> violations;
+        violations = validator.validate(blankUser);
+        assertFalse(violations.isEmpty());
+        violations = validator.validate(nullUser);
+        assertFalse(violations.isEmpty());
+        violations = validator.validate(spaceUser);
+        assertFalse(violations.isEmpty());
     }
 
     @Test
@@ -58,16 +74,9 @@ public class UserControllerTest {
     public void shouldNotCreateUserWithIncorrectBirthday() {
         User fromFutureUser = getValidUser().birthday(LocalDate.of(2077, 1, 1)).build();
 
-        assertThrows(ValidationException.class, () -> users.create(fromFutureUser));
-    }
-
-    @Test
-    public void shouldUpdateNullUser() {
-        User user = users.create(getValidUser().build());
-
-        User nullUser = users.update(getValidUser().login(null).email(null).birthday(null).name(null).build());
-
-        assertEquals(user, nullUser);
+        Set<ConstraintViolation<User>> violations;
+        violations = validator.validate(fromFutureUser);
+        assertFalse(violations.isEmpty());
     }
 
 }

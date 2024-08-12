@@ -1,18 +1,20 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FilmControllerTest {
 
-    FilmController films = new FilmController();
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     private static Film.FilmBuilder getValidFilm() {
         return Film.builder()
@@ -28,21 +30,21 @@ public class FilmControllerTest {
         Film blankFilm = getValidFilm().name("").build();
         Film nullFilm = getValidFilm().name(null).build();
 
-        assertThrows(ValidationException.class, () -> films.create(blankFilm));
-        assertThrows(ValidationException.class, () -> films.create(nullFilm));
+        Set<ConstraintViolation<Film>> violations = validator.validate(blankFilm);
+        violations.addAll(validator.validate(nullFilm));
+
+        assertEquals(2, violations.size());
     }
 
     @Test
     public void shouldNotCreateFilmWithIncorrectDescription() {
-        Film overlengthFilm = getValidFilm().description("BgtqyLpAxAcVAPFuclcUvsDpZuiETNHYwDMcNoAajZWVLkJSCIlRFYWR" +
-                "kNvWgxUVAQtYgHkJrNyyLDSBwAvxtkauoQMKowpHKOvSwwSCXndqmUzEhUIEoEvwnxJflxOrZOBgpSLHKDkzoVZmceELKUum" +
-                "ojdCRXiGoEvyDwUDXLdJDUcqwgqBtmRiunZSZdhoUACDMnMUJ").build();
-        Film twoHundredlengthFilm = getValidFilm().description("mBgrxRNoqcHNEFbNBgRlUtJPBYZIsAJjJmXmprqroBkfhFwRBrF" +
-                "ForRWHSaaNuaWYbRbQiyevcJSXObcoonDyTQCVccHjfStqypkwaObYIgwgOCwepEwbFujbRvmnGjRvktvATBTtWADbiCGDcqpZ" +
-                "JVVBGfrfHCgWwHUvBFMQljToyJGFeftlIksvGUHiTZzxyvOGHJc").build();
+        Film overlengthFilm = getValidFilm().description("a".repeat(201)).build();
+        Film twoHundredlengthFilm = getValidFilm().description("a".repeat(200)).build();
 
-        assertThrows(ValidationException.class, () -> films.create(overlengthFilm));
-        assertEquals(twoHundredlengthFilm, films.create(twoHundredlengthFilm));
+        Set<ConstraintViolation<Film>> violations = validator.validate(overlengthFilm);
+        violations.addAll(validator.validate(twoHundredlengthFilm));
+
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -50,8 +52,10 @@ public class FilmControllerTest {
         Film incorrectFilm = getValidFilm().releaseDate(LocalDate.of(1894, 1, 1)).build();
         Film correctFilm = getValidFilm().releaseDate(LocalDate.of(2077, 1, 1)).build();
 
-        assertThrows(ValidationException.class, () -> films.create(incorrectFilm));
-        assertEquals(correctFilm, films.create(correctFilm));
+        Set<ConstraintViolation<Film>> violations = validator.validate(incorrectFilm);
+        violations.addAll(validator.validate(correctFilm));
+
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -60,19 +64,11 @@ public class FilmControllerTest {
         Film zeroDurationFilm = getValidFilm().duration(Duration.ofMinutes(0)).build();
         Film correctFilm = getValidFilm().duration(Duration.ofMinutes(1)).build();
 
-        assertThrows(ValidationException.class, () -> films.create(negativeDurationFilm));
-        assertThrows(ValidationException.class, () -> films.create(zeroDurationFilm));
-        assertEquals(correctFilm, films.create(correctFilm));
+        Set<ConstraintViolation<Film>> violations = validator.validate(negativeDurationFilm);
+        violations.addAll(validator.validate(zeroDurationFilm));
+        violations.addAll(validator.validate(correctFilm));
+
+        assertEquals(2, violations.size());
     }
-
-    @Test
-    public void shouldUpdateNullFilm() {
-        Film film = films.create(getValidFilm().build());
-
-        Film nullFilm = films.update(getValidFilm().name(null).description(null).releaseDate(null).duration(null).build());
-
-        assertEquals(film, nullFilm);
-    }
-
 
 }

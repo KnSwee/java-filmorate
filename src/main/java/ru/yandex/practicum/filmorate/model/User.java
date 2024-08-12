@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,13 +12,16 @@ import java.time.LocalDate;
 @EqualsAndHashCode(of = {"id"})
 @Data
 public class User {
-    int id;
-    //@Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
-    String email;
-    //@NotNull
-    String login;
-    String name;
-    //@PastOrPresent
-    LocalDate birthday;
+    private int id;
+    @NotNull(message = "Электронная почта не может быть пустой")
+    @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+            message = "Электронная почта не может быть пустой и должна содержать символ @")
+    private String email;
+    @Pattern(regexp = "^\\S+$", message = "Логин не может быть пустым и содержать пробелы")
+    @NotBlank(message = "Логин не может быть пустым и содержать пробелы")
+    private String login;
+    private String name;
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
+    private LocalDate birthday;
 
 }
