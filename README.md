@@ -4,9 +4,9 @@ Template repository for Filmorate project.
 [Screenshot of a DB ER diagram](./diagram.png)
 
 
-FilmController:
+## FilmController
 
-# findAll()
+### findAll()
 SELECT f.film_id, f.name, f.description, f.release_date, f.duration_minutes, f.rating  
 FROM film f  
 JOIN rating r ON f.rating_id = r.rating_id  
@@ -16,7 +16,7 @@ FROM film_genre fg
 JOIN genre g ON fg genre_id = g.genre_id  
 WHERE film_id = ...  
 
-# getFilm(long filmId)
+### getFilm(long filmId)
 SELECT f.film_id, f.name, f.description, f.release_date, f.duration_minutes, f.rating  
 FROM film f  
 JOIN rating r ON f.rating_id = r.rating_id  
@@ -27,7 +27,7 @@ FROM film_genre fg
 JOIN genre g ON fg genre_id = g.genre_id  
 WHERE film_id = filmId  
 
-# getRatedFilms(int count)
+### getRatedFilms(int count)
 SELECT f.film_id, f.name, f.description, f.release_date, f.duration_minutes, f.rating    
 FROM film f   
 JOIN rating r ON f.rating_id = r.rating_id   
@@ -42,21 +42,24 @@ FROM film_genre fg
 JOIN genre g ON fg genre_id = g.genre_id  
 WHERE film_id IN (...)
 
-# findAll()
+
+## UserController
+
+### findAll()
 SELECT *  
 FROM user  
 
-# getUser(long userId)
+### getUser(long userId)
 SELECT *
 FROM user
 WHERE user_id = userId
 
-# getFriends(long userId)
+### getFriends(long userId)
 SELECT friend_added_id
 FROM user_friend
 WHERE user_id = userId
 
-# getMutualFriends(long id, long otherId)
+### getMutualFriends(long id, long otherId)
 SELECT friend_added_id  
 FROM user_friend,  
   (SELECT friend_added_id  
