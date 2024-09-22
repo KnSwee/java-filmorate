@@ -1,0 +1,10 @@
+spring:
+  main:
+    log-startup-info: false
+  output:
+    ansi:
+      enabled: ALWAYS
+
+logging.level:
+  org.zalando.logbook: TRACE
+

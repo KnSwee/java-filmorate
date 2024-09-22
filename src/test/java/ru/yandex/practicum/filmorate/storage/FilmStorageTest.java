@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.storage;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -12,13 +12,13 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FilmControllerTest {
+public class FilmStorageTest {
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     private static Film.FilmBuilder getValidFilm() {
         return Film.builder()
-                .id(1)
+                .id(1L)
                 .name("название")
                 .description("описание")
                 .releaseDate(LocalDate.of(1990, 1, 1))

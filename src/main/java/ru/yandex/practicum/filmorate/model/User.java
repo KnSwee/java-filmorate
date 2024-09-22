@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -12,7 +14,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(of = {"id"})
 @Data
 public class User {
-    private int id;
+    private Long id;
     @NotNull(message = "Электронная почта не может быть пустой")
     @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
             message = "Электронная почта не может быть пустой и должна содержать символ @")
@@ -23,5 +25,6 @@ public class User {
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+    private Set<Long> friends = new HashSet<>();
 
 }
