@@ -15,12 +15,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private final HashMap<Long, Film> films = new HashMap<>();
 
-    public Film create(Film film) {
+    public Long create(Film film) {
         film.setId(getNextId());
         log.debug("Фильму присвоен id {}", film.getId());
         films.put(film.getId(), film);
         log.debug("Фильм добавлен со следующими параметрами - {}", films.get(film.getId()));
-        return film;
+        return film.getId();
     }
 
     public Film update(Film newFilm) {

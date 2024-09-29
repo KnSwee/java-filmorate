@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.validationTest;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -71,7 +71,7 @@ public class UserStorageTest {
     }
 
     @Test
-    public void shouldNotCreateUserWithIncorrectBirthday() {
+    public void shouldNotCreateUserWithIncorrectBirthdate() {
         User fromFutureUser = getValidUser().birthday(LocalDate.of(2077, 1, 1)).build();
 
         Set<ConstraintViolation<User>> violations;
