@@ -58,8 +58,8 @@ public class GenreService {
         genreDbStorage.updateGenres(updFilm);
     }
 
-    public boolean isGenreExist(List<GenreDto> genres) {
-        return genres.stream().allMatch(genre -> genreDbStorage.isGenreExistId(genre.getId()));
+    public List<Long> isGenresExist(Long filmId) {
+        return genreDbStorage.isGenresExistByFilm(filmId);
     }
 
 

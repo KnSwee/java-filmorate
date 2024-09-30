@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmDto;
+import ru.yandex.practicum.filmorate.dto.genre.GenreDto;
 import ru.yandex.practicum.filmorate.dto.mapper.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.IncorrectDataException;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 @RequiredArgsConstructor
 @Service
@@ -43,27 +45,23 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getRatedFilms(int count) {
-        return storage.getRatedFilms(count).stream()
-                .peek(film -> film.setMpa(mpaService.getMpaByFilm(film.getId())))
-                .peek(film -> film.setLikes(storage.getLikes(film.getId())))
-                .peek(film -> film.setGenres(genreService.getGenre(film.getId())))
-                .map(FilmDtoMapper::mapToFilmDto)
-                .toList();
-    }
-
-    private static int compare(FilmDto film1, FilmDto film2) {
-        if (film1.getLikes().size() > film2.getLikes().size()) {
-            return -1;
-        } else if (film1.getLikes().size() < film2.getLikes().size()) {
-            return 1;
-        }
-        return 0;
+        return storage.getRatedFilms(count).stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
     public FilmDto createFilm(FilmDto film) {
         Long newFilmId = storage.create(FilmDtoMapper.mapToFilm(film));
         mpaService.addMpa(film.getMpa(), newFilmId);
-        if (!genreService.isGenreExist(film.getGenres())) {
+        boolean exist = new HashSet<>(
+                genreService.findAll().stream()
+                        .map(GenreDto::getId)
+                        .toList()
+        )
+                .containsAll(
+                        film.getGenres().stream()
+                                .map(GenreDto::getId)
+                                .toList()
+                );
+        if (!exist) {
             throw new IncorrectDataException("Не существует одного из представленных жанров - %s"
                     .formatted(film.getGenres()));
         }
@@ -99,9 +97,6 @@ public class FilmService {
 
     public Collection<FilmDto> findAll() {
         return storage.findAll().stream()
-                .peek(film -> film.setMpa(mpaService.getMpaByFilm(film.getId())))
-                .peek(film -> film.setLikes(storage.getLikes(film.getId())))
-                .peek(film -> film.setGenres(genreService.getGenre(film.getId())))
                 .map(FilmDtoMapper::mapToFilmDto)
                 .toList();
     }

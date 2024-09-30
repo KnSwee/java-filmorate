@@ -27,7 +27,6 @@ public class MpaDbStorage {
     private static final String CHECK_RATING_EXIST_NAME = "SELECT COUNT(*) AS exist FROM rating WHERE name = ?;";
     private static final String CHECK_MPA_EXIST_ID = "SELECT COUNT(*) AS exist FROM rating WHERE rating_id = ?;";
 
-
     public Mpa getMpa(Long filmId) {
         return jdbc.query(GET_RATING_BY_FILM_QUERY, mapper, filmId).getFirst().getFirst();
     }

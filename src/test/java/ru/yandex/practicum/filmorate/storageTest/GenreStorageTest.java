@@ -119,7 +119,7 @@ public class GenreStorageTest {
 
         storage.delete(genre1Id);
 
-        assertEquals(1,storage.findAll().size());
+        assertEquals(1, storage.findAll().size());
         assertFalse(storage.findAll().contains(genre1));
     }
 

@@ -81,7 +81,7 @@ public class FilmStorageTest {
 
         assertEquals(0, storage.getLikes(id).size());
 
-        storage.addLike(id,1L);
+        storage.addLike(id, 1L);
 
         assertEquals(1, storage.getLikes(id).size());
 

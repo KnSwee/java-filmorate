@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.dto.mapper;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dto.mpa.MpaDto;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Component
 public class MpaDtoMapper {
 

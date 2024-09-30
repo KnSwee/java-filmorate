@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.dto.mapper;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dto.genre.GenreDto;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Component
 public class GenreDtoMapper {
 

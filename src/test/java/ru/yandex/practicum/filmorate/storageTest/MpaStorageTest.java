@@ -61,7 +61,7 @@ public class MpaStorageTest {
 
     @Sql(value = {"/schema.sql", "/cleanup.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Test
-    public void  deleteMpaTest() {
+    public void deleteMpaTest() {
         Long mpaId = storage.create(MockData.getBaseMpa());
         Long mpa2Id = storage.create(MockData.getBaseMpa());
         Long mpa3Id = storage.create(MockData.getBaseMpa());

@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.storage.film.mapper.LikeCheckMapper;
 import ru.yandex.practicum.filmorate.storage.film.mapper.LikeMapper;
+import ru.yandex.practicum.filmorate.storage.film.mapper.RatedFilmsMapper;
 
 import java.util.*;
 
@@ -23,21 +24,48 @@ public class FilmDbStorage implements FilmStorage {
     private final FilmRowMapper mapper;
     private final LikeMapper likeMapper;
     private final LikeCheckMapper likeCheckMapper;
+    private final RatedFilmsMapper ratedMapper;
     private static final String ENTITY_NOT_FOUND = "Фильм с id %s не найден";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration_minutes = ? WHERE id = ?;";
     private static final String ADD_LIKE_QUERY = "INSERT INTO FILM_LIKE(FILM_ID, USER_ID) VALUES (?, ?);";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM FILM_LIKE WHERE film_id = ? AND user_id = ?;";
     private static final String LIKE_CHECK_QUERY = "SELECT COUNT(*) AS likes FROM film_like WHERE film_id = ? AND user_id = ?";
     private static final String GET_FILM_QUERY = "SELECT * FROM FILMS f WHERE id = ?;";
-    private static final String FIND_ALL_QUERY = "SELECT * FROM FILMS f;";
     private static final String GET_LIKES_QUERY = "SELECT user_id FROM film_like fl WHERE film_id = ?;";
-    private static final String GET_RATED_FILMS_QUERY = "SELECT count(DISTINCT fl.USER_ID) AS rate, f.ID, f.NAME, \n" +
-            "f.DESCRIPTION, f.RELEASE_DATE, f.DURATION_MINUTES, f.RATING_ID\n" +
-            "FROM FILMS f\n" +
-            "LEFT JOIN FILM_LIKE fl ON f.ID = fl.FILM_ID\n" +
-            "GROUP BY F.ID, F.NAME, F.DESCRIPTION, F.RELEASE_DATE, F.DURATION_MINUTES, F.RATING_ID\n" +
-            "ORDER BY rate DESC\n" +
-            "LIMIT ?;";
+    private static final String FIND_ALL_QUERY = "SELECT F.ID,\n" +
+            "                   F.NAME,\n" +
+            "                   F.DESCRIPTION,\n" +
+            "                   F.RELEASE_DATE,\n" +
+            "                   F.DURATION_MINUTES,\n" +
+            "                   F.RATING_ID,\n" +
+            "                   R.NAME AS r_name,\n" +
+            "                   LISTAGG(DISTINCT CONCAT(G.GENRE_ID, '/', G.NAME)) FILTER (WHERE G.GENRE_ID IS NOT NULL) AS GENRES,\n" +
+            "                   LISTAGG(DISTINCT FL.USER_ID) AS LIKES\n" +
+            "            FROM FILMS F\n" +
+            "            LEFT JOIN RATING R ON F.RATING_ID = R.RATING_ID\n" +
+            "            LEFT JOIN FILM_GENRE FG ON F.ID = FG.FILM_ID\n" +
+            "            LEFT JOIN GENRE G ON FG.GENRE_ID = G.GENRE_ID\n" +
+            "            LEFT JOIN FILM_LIKE FL ON F.ID = FL.FILM_ID\n" +
+            "            GROUP BY F.ID\n" +
+            "            ORDER BY f.ID;";
+    private static final String GET_RATED_FILMS_QUERY = "SELECT F.ID,\n" +
+            "                   F.NAME,\n" +
+            "                   F.DESCRIPTION,\n" +
+            "                   F.RELEASE_DATE,\n" +
+            "                   F.DURATION_MINUTES,\n" +
+            "                   F.RATING_ID,\n" +
+            "                   R.NAME AS r_name,\n" +
+            "                   LISTAGG(DISTINCT CONCAT(G.GENRE_ID, '/', G.NAME)) FILTER (WHERE G.GENRE_ID IS NOT NULL) AS GENRES,\n" +
+            "                   LISTAGG(DISTINCT FL.USER_ID) AS LIKES,\n" +
+            "                   COUNT(DISTINCT fl.USER_ID) AS rate\n" +
+            "            FROM FILMS F\n" +
+            "            LEFT JOIN RATING R ON F.RATING_ID = R.RATING_ID\n" +
+            "            LEFT JOIN FILM_GENRE FG ON F.ID = FG.FILM_ID\n" +
+            "            LEFT JOIN GENRE G ON FG.GENRE_ID = G.GENRE_ID\n" +
+            "            LEFT JOIN FILM_LIKE FL ON F.ID = FL.FILM_ID\n" +
+            "            GROUP BY F.ID\n" +
+            "            ORDER BY rate DESC, f.ID\n" +
+            "            LIMIT ?;";
 
     @Override
     public Long create(Film film) {
@@ -67,7 +95,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findAll() {
-        return Optional.of(jdbc.query(FIND_ALL_QUERY, mapper).getFirst())
+        return Optional.of(jdbc.query(FIND_ALL_QUERY, ratedMapper).getFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Не удалось получить фильмы"));
     }
 
@@ -97,7 +125,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Collection<Film> getRatedFilms(int count) {
-        return Optional.of(jdbc.query(GET_RATED_FILMS_QUERY, mapper, count).getFirst())
+        return Optional.of(jdbc.query(GET_RATED_FILMS_QUERY, ratedMapper, count).getFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Не удалось получить топ фильмов"));
     }
 
