@@ -2,85 +2,94 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.mapper.UserDtoMapper;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserDto;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class UserService {
-    private final InMemoryUserStorage storage;
+    private final UserDbStorage storage;
 
     public Long addFriend(Long userId, Long friendId) {
-        if (storage.getUser(userId) == null) {
-            throw new EntityNotFoundException("Пользователя с userId %d не существует".formatted(userId));
+        if (!storage.findAll().stream().map(User::getId).toList().contains(userId)) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(userId));
         }
-        if (storage.getUser(friendId) == null) {
-            throw new EntityNotFoundException("Пользователя с friendId %d не существует".formatted(friendId));
+        if (!storage.findAll().stream().map(User::getId).toList().contains(friendId)) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(friendId));
         }
-        storage.getUser(userId).getFriends().add(friendId);
-        storage.getUser(friendId).getFriends().add(userId);
+        storage.addFriend(userId, friendId);
         return friendId;
     }
 
     public Long deleteFriend(Long userId, Long friendId) {
-        if (storage.getUser(userId) == null) {
-            throw new EntityNotFoundException("Пользователя с userId %d не существует".formatted(userId));
+        if (!storage.findAll().stream().map(User::getId).toList().contains(userId)) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(userId));
         }
-        if (storage.getUser(friendId) == null) {
-            throw new EntityNotFoundException("Пользователя с friendId %d не существует".formatted(friendId));
+        if (!storage.findAll().stream().map(User::getId).toList().contains(friendId)) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(friendId));
         }
-        storage.getUser(userId).getFriends().remove(friendId);
-        storage.getUser(friendId).getFriends().remove(userId);
+        storage.deleteFriend(userId, friendId);
         return friendId;
     }
 
-    public Collection<User> getFriends(Long userId) {
-        if (storage.getUser(userId) == null) {
-            throw new EntityNotFoundException("Пользователя с userId %d не существует".formatted(userId));
+    public Collection<UserDto> getFriends(Long userId) {
+        if (!storage.findAll().stream().map(User::getId).toList().contains(userId)) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(userId));
         }
-        return storage.getUser(userId).getFriends()
-                .stream()
-                .map(storage::getUser)
-                .toList();
+        return getUsers(storage.getFriends(userId));
     }
 
-    public User create(User user) {
-        return storage.create(user);
+    public UserDto create(UserDto user) {
+        return UserDtoMapper.mapToUserDto(storage.create(UserDtoMapper.mapToUser(user)));
     }
 
-    public User update(User newUser) {
-        if (storage.getUser(newUser.getId()) == null) {
-            throw new EntityNotFoundException("Пользователя с newUser.getId %d не существует".formatted(newUser.getId()));
+    public UserDto update(UpdateUserDto newUser) {
+        if (!storage.findAll().stream().map(User::getId).toList().contains(newUser.getId())) {
+            throw new EntityNotFoundException("Пользователя с Id %d не существует".formatted(newUser.getId()));
         }
-        return storage.update(newUser);
+        User updatingUser = UserDtoMapper.mapToUser(getUser(newUser.getId()));
+        if (newUser.hasEmail()) {
+            updatingUser.setEmail(newUser.getEmail());
+        }
+        if (newUser.hasName()) {
+            updatingUser.setName(newUser.getName());
+        }
+        if (newUser.hasLogin()) {
+            updatingUser.setLogin(newUser.getLogin());
+        }
+        if (newUser.hasBirthdate()) {
+            updatingUser.setBirthday(newUser.getBirthday());
+        }
+        return UserDtoMapper.mapToUserDto(storage.update(updatingUser));
     }
 
-    public Collection<User> findAll() {
-        return storage.findAll();
+    public Collection<UserDto> findAll() {
+        return storage.findAll().stream().map(UserDtoMapper::mapToUserDto).toList();
     }
 
-    public User getUser(Long id) {
-        return Optional.ofNullable(storage.getUser(id))
-                .orElseThrow(() -> new EntityNotFoundException("Пользователя с id %d не существует".formatted(id)));
+    public UserDto getUser(Long id) {
+        return UserDtoMapper.mapToUserDto(storage.getUser(id));
     }
 
-    public Collection<User> getMutualFriends(Long id, Long otherId) {
+    public Collection<UserDto> getMutualFriends(Long id, Long otherId) {
         if (storage.getUser(id) == null) {
             throw new EntityNotFoundException("Пользователя с id %d не существует".formatted(id));
         }
         if (storage.getUser(otherId) == null) {
             throw new EntityNotFoundException("Пользователя с otherId %d не существует".formatted(otherId));
         }
-
-        ArrayList<User> mutualFriends = new ArrayList<>(getFriends(id));
-        mutualFriends.retainAll(getFriends(otherId));
-        return mutualFriends;
+        return getUsers(storage.getMutualFriends(id, otherId));
     }
 
+    public Collection<UserDto> getUsers(List<Long> friends) {
+        return friends.stream().map(storage::getUser).map(UserDtoMapper::mapToUserDto).toList();
+    }
 
 }

@@ -9,14 +9,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class FilmorateApplication {
-	private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(FilmorateApplication.class);
+    private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(FilmorateApplication.class);
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		log.setLevel(Level.DEBUG);
+        log.setLevel(Level.DEBUG);
 
-		SpringApplication.run(FilmorateApplication.class, args);
+        SpringApplication.run(FilmorateApplication.class, args);
 
-	}
+    }
 
 }

@@ -6,7 +6,7 @@ import java.util.Collection;
 
 public interface FilmStorage {
 
-    Film create(Film film);
+    Long create(Film film);
 
     Film update(Film film);
 
